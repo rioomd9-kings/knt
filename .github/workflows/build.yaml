@@ -27,47 +27,7 @@ jobs:
         gradle-version: 8.2
 
     - name: Build with Gradle
-      run: |
-        mkdir -p app/src/main
-        
-        echo '<?xml version="1.0" encoding="utf-8"?>' > app/src/main/AndroidManifest.xml
-        echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.kinar.rmdproject">' >> app/src/main/AndroidManifest.xml
-        echo '<application android:label="rmdproject">' >> app/src/main/AndroidManifest.xml
-        echo '<activity android:name=".MainActivity" android:exported="true">' >> app/src/main/AndroidManifest.xml
-        echo '<intent-filter>' >> app/src/main/AndroidManifest.xml
-        echo '<action android:name="android.intent.action.MAIN" />' >> app/src/main/AndroidManifest.xml
-        echo '<category android:name="android.intent.category.LAUNCHER" />' >> app/src/main/AndroidManifest.xml
-        echo '</intent-filter>' >> app/src/main/AndroidManifest.xml
-        echo '</activity>' >> app/src/main/AndroidManifest.xml
-        echo '</application>' >> app/src/main/AndroidManifest.xml
-        echo '</manifest>' >> app/src/main/AndroidManifest.xml
-
-        echo "include ':app'" > settings.gradle
-
-        echo "buildscript {" > build.gradle
-        echo "    repositories {" >> build.gradle
-        echo "        google()" >> build.gradle
-        echo "        mavenCentral()" >> build.gradle
-        echo "    }" >> build.gradle
-        echo "    dependencies {" >> build.gradle
-        echo "        classpath 'com.android.tools.build:gradle:8.1.0'" >> build.gradle
-        echo "    }" >> build.gradle
-        echo "}" >> build.gradle
-
-        echo "apply plugin: 'com.android.application'" > app/build.gradle
-        echo "android {" >> app/build.gradle
-        echo "    namespace 'com.kinar.rmdproject'" >> app/build.gradle
-        echo "    compileSdk 33" >> app/build.gradle
-        echo "    defaultConfig {" >> app/build.gradle
-        echo "        applicationId 'com.kinar.rmdproject'" >> app/build.gradle
-        echo "        minSdk 21" >> app/build.gradle
-        echo "        targetSdk 33" >> app/build.gradle
-        echo "        versionCode 1" >> app/build.gradle
-        echo "        versionName '1.0'" >> app/build.gradle
-        echo "    }" >> app/build.gradle
-        echo "}" >> app/build.gradle
-
-        gradle assembleDebug
+      run: gradle assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
