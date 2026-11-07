@@ -28,19 +28,29 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        # 1. Bersihin file lama biar gk tabrakan
-        rm -f build.gradle settings.gradle
-        
-        # 2. Bikin struktur folder standar Android
+        # 1. Bikin folder app & src/main
         mkdir -p app/src/main
         
-        # 3. Bikin Manifest dengan namespace BARU: com.kinar.rmdproject
+        # 2. Tulis Manifest
         echo '<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.kinar.rmdproject"><application android:label="rmdproject"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
 
-        # 4. Bikin settings.gradle
+        # 3. Tulis settings.gradle
         echo "include ':app'" > settings.gradle
 
-        # 5. Bikin build.gradle khusus modul app
+        # 4. Tulis build.gradle di root (classpath)
+        cat <<EOF > build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.0'
+            }
+        }
+        EOF
+
+        # 5. Tulis build.gradle di folder app
         cat <<EOF > app/build.gradle
         apply plugin: 'com.android.application'
         android {
@@ -56,20 +66,7 @@ jobs:
         }
         EOF
 
-        # 6. Bikin build.gradle di root (buat classpath)
-        cat <<EOF > build.gradle
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.0'
-            }
-        }
-        EOF
-
-        # 7. Jalanin Build
+        # 6. Build langsung pake gradle bawaan actions
         gradle assembleDebug
 
     - name: Upload APK
