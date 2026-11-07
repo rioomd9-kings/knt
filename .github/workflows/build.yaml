@@ -28,45 +28,45 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        # 1. Bikin folder app & src/main
         mkdir -p app/src/main
         
-        # 2. Tulis Manifest
-        echo '<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.kinar.rmdproject"><application android:label="rmdproject"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
+        echo '<?xml version="1.0" encoding="utf-8"?>' > app/src/main/AndroidManifest.xml
+        echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.kinar.rmdproject">' >> app/src/main/AndroidManifest.xml
+        echo '<application android:label="rmdproject">' >> app/src/main/AndroidManifest.xml
+        echo '<activity android:name=".MainActivity" android:exported="true">' >> app/src/main/AndroidManifest.xml
+        echo '<intent-filter>' >> app/src/main/AndroidManifest.xml
+        echo '<action android:name="android.intent.action.MAIN" />' >> app/src/main/AndroidManifest.xml
+        echo '<category android:name="android.intent.category.LAUNCHER" />' >> app/src/main/AndroidManifest.xml
+        echo '</intent-filter>' >> app/src/main/AndroidManifest.xml
+        echo '</activity>' >> app/src/main/AndroidManifest.xml
+        echo '</application>' >> app/src/main/AndroidManifest.xml
+        echo '</manifest>' >> app/src/main/AndroidManifest.xml
 
-        # 3. Tulis settings.gradle
         echo "include ':app'" > settings.gradle
 
-        # 4. Tulis build.gradle di root (classpath)
-        cat <<EOF > build.gradle
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.0'
-            }
-        }
-        EOF
+        echo "buildscript {" > build.gradle
+        echo "    repositories {" >> build.gradle
+        echo "        google()" >> build.gradle
+        echo "        mavenCentral()" >> build.gradle
+        echo "    }" >> build.gradle
+        echo "    dependencies {" >> build.gradle
+        echo "        classpath 'com.android.tools.build:gradle:8.1.0'" >> build.gradle
+        echo "    }" >> build.gradle
+        echo "}" >> build.gradle
 
-        # 5. Tulis build.gradle di folder app
-        cat <<EOF > app/build.gradle
-        apply plugin: 'com.android.application'
-        android {
-            namespace 'com.kinar.rmdproject'
-            compileSdk 33
-            defaultConfig {
-                applicationId "com.kinar.rmdproject"
-                minSdk 21
-                targetSdk 33
-                versionCode 1
-                versionName "1.0"
-            }
-        }
-        EOF
+        echo "apply plugin: 'com.android.application'" > app/build.gradle
+        echo "android {" >> app/build.gradle
+        echo "    namespace 'com.kinar.rmdproject'" >> app/build.gradle
+        echo "    compileSdk 33" >> app/build.gradle
+        echo "    defaultConfig {" >> app/build.gradle
+        echo "        applicationId 'com.kinar.rmdproject'" >> app/build.gradle
+        echo "        minSdk 21" >> app/build.gradle
+        echo "        targetSdk 33" >> app/build.gradle
+        echo "        versionCode 1" >> app/build.gradle
+        echo "        versionName '1.0'" >> app/build.gradle
+        echo "    }" >> app/build.gradle
+        echo "}" >> app/build.gradle
 
-        # 6. Build langsung pake gradle bawaan actions
         gradle assembleDebug
 
     - name: Upload APK
