@@ -1,0 +1,16 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.kinar.rmdproject'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.kinar.rmdproject"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+    }
+}
